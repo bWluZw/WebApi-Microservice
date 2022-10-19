@@ -1,0 +1,49 @@
+//{
+//  "Routes": [
+//    {
+//      "DownstreamPathTemplate": "/todos/{id}",
+//      "DownstreamScheme": "https",
+//      "DownstreamHostAndPorts": [
+//        {
+//          "Host": "jsonplaceholder.typicode.com",
+//          "Port": 443
+//        }
+//      ],
+//      "UpstreamPathTemplate": "/todos/{id}",
+//      "UpstreamHttpMethod": [ "Get" ]
+//    }
+//  ],
+//  "GlobalConfiguration": {
+//    "BaseUrl": "https://localhost:5000"
+//  }
+//}
+{
+  //这里注意，以前是ReRoutes现在是Routes
+  "Routes": [
+    {
+      //Upstream表示上游请求，即客户端请求到API Gateway的请求
+      "UpstreamPathTemplate": "/TestService1/{url}", //请求路径模板
+      "UpstreamHttpMethod": [ "Get", "Post" ], //请求方法数组
+
+      "UseServiceDiscovery": true, //启用服务发现
+
+      //Downstream表示下游请求，即API Gateway转发的目标服务地址
+      "DownstreamPathTemplate": "/api/{url}", //下游请求地址模板
+      "DownstreamScheme": "https", //请求协议，目前应该是支持http和https
+      //A***************指定单个转发地址
+      "DownstreamHostAndPorts": [ //请求服务地址,可以有多个
+        {
+          "Host": "localhost",
+          "Port": 7106
+        }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    //"ServiceDiscoveryProvider": {
+    //  "Host": "127.0.0.1",
+    //  "Port": 8500,
+    //  "Type": "PollConsul"
+    //}
+  }
+}
