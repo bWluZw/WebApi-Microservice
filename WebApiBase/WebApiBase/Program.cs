@@ -30,19 +30,25 @@ builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
 
 //builder.Services.AddDbContext<BaseDbContext>(option=>option)
 
+//这个方法可以动态实现配置，但是未测试
+//log4net.Config.XmlConfigurator.Configure();
 //注入Log4Net
 builder.Services.AddLogging(cfg =>
 {
+    cfg.Configure((opt) =>
+    {
+        opt.ActivityTrackingOptions = ActivityTrackingOptions.None;
+    });
     cfg.AddLog4Net();
     //默认的配置文件路径是在根目录，且文件名为log4net.config
     //如果文件路径或名称有变化，需要重新设置其路径或名称
     //比如在项目根目录下创建一个名为cfg的文件夹，将log4net.config文件移入其中，并改名为log.config
     //则需要使用下面的代码来进行配置
-    //cfg.AddLog4Net(new Log4NetProviderOptions()
-    //{
-    //    Log4NetConfigFileName = "cfg/log.config",
-    //    Watch = true
-    //});
+    cfg.AddLog4Net(new Log4NetProviderOptions()
+    {
+        Log4NetConfigFileName = "cfg/log.config",
+        Watch = true
+    });
 });
 
 
