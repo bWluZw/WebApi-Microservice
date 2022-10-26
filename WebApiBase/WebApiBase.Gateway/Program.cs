@@ -1,3 +1,4 @@
+using Nacos.AspNetCore.V2;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 
@@ -13,17 +14,23 @@ builder.Host.ConfigureLogging(log =>
     log.ClearProviders();
     log.AddConsole();
 });
-// 注册Ocelot 服务
-builder.Services.AddOcelot();
+
 
 //讲nacos添加的配置读取出来替换掉原有的IConfigurationBuilder，并支持热更新
-Host.CreateDefaultBuilder(args)
-.ConfigureAppConfiguration((context, configBuilder) =>
+
+//builder.Services.AddNacosAspNet(builder.Configuration, "NacosConfig");
+
+//var test = builder.Configuration.GetSection("ConnectionStrings");
+
+builder.Host.ConfigureAppConfiguration((context, configBuilder) =>
 {
     var c = configBuilder.Build();
-    configBuilder.AddNacosV2Configuration(c.GetSection("NacosConfig"));
-});
+    var test= configBuilder.AddNacosV2Configuration(c.GetSection("NacosConfig"));
+    Console.WriteLine(c.GetSection("NacosConfig"));
 
+});
+// 注册Ocelot 服务
+builder.Services.AddOcelot();
 
 var app = builder.Build();
 

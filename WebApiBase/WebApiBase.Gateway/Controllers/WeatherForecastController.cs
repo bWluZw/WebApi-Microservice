@@ -12,15 +12,23 @@ namespace WebApiBase.Gateway.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IConfiguration configuration;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration)
         {
             _logger = logger;
+            this.configuration = configuration;
         }
 
         [HttpGet]
+        [Route("Get")]
         public IEnumerable<WeatherForecast> Get()
         {
+            for (int i = 0; i < configuration.AsEnumerable().Count(); i++)
+            {
+                Console.WriteLine(configuration.AsEnumerable().ElementAt(i));
+            }
+
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
