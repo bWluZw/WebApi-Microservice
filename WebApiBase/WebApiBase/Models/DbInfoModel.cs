@@ -18,6 +18,7 @@
         /// 是否为外部数据库
         /// </summary>
         public bool IsExtraDb { get; set; }
+
     }
     public enum DataBaseType
     {

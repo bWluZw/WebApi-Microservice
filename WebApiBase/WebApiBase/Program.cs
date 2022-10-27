@@ -25,8 +25,8 @@ using WebApiBase.Models;
 using WebApiBase.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
-{ 
-    
+{
+
 }
 
 //关闭自带logging
@@ -35,54 +35,9 @@ builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
     loggingBuilder.ClearProviders();
 });
 
-//builder.Services.AddDbContext<BaseDbContext>(option=>option)
-//builder.Services.AddNacosAspNet(builder.Configuration, "NacosConfig");
-
-//var test = builder.Configuration.GetSection("test");
-
-
-//builder.Services.AddNacosV2Config(x =>
-//{
-//    x.ServerAddresses = new System.Collections.Generic.List<string> { "http://120.53.244.123:8849/" };
-
-//    x.EndPoint = "";
-//    x.Namespace = "public";
-
-//    x.UserName = "nacos";
-//    x.Password = "nacos";
-
-//    // swich to use http or rpc
-//    x.ConfigUseRpc = true;
-//});
-
-//builder.Services.AddNacosV2Naming(x =>
-//{
-//    x.ServerAddresses = new System.Collections.Generic.List<string> { "http://120.53.244.123:8849/" };
-//    x.EndPoint = "";
-//    x.Namespace = "public";
-
-//    x.UserName = "nacos";
-//    x.Password = "nacos";
-
-//    // swich to use http or rpc
-//    x.NamingUseRpc = true;
-//});
-
-
-//builder.Services.AddNacosAspNet(builder.Configuration, "NacosConfig");
-
-
-
-//Host.CreateDefaultBuilder(args)
-//    .ConfigureWebHostDefaults((config) =>
-//    {
-
-//    })
-//    .ConfigureAppConfiguration((context, builder) =>
-//{
-//    var c = builder.Build();
-//    builder.AddNacosV2Configuration(c.GetSection("NacosConfig"));
-//});
+//获取远程配置
+await builder.AddNacosService("NacosConfig");
+builder.Services.AddNacosAspNet(builder.Configuration, "NacosConfig");
 
 
 //这个方法可以动态实现配置，但是未测试
@@ -94,6 +49,11 @@ builder.Services.AddLogging(cfg =>
     {
         opt.ActivityTrackingOptions = ActivityTrackingOptions.None;
     });
+    //IConfigurationRoot root = builder.Configuration;
+    //string temp = root.GetSection("log4").Value;
+    //Stream stream = new MemoryStream(Encoding.ASCII.GetBytes(temp));
+    //log4net.Config.XmlConfigurator.Configure(stream);
+    //log4net.Config.XmlConfigurator.Configure();
     //cfg.AddLog4Net();
     //log4net.Config.XmlConfigurator.Configure();
     //默认的配置文件路径是在根目录，且文件名为log4net.config
@@ -110,24 +70,24 @@ builder.Services.AddLogging(cfg =>
 
 
 //添加jwt验证：
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-//{
-//    var keyByte = Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]);
-//    options.TokenValidationParameters = new TokenValidationParameters()
-//    {
-//        //验证发布者
-//        ValidateIssuer = true,
-//        ValidIssuer = builder.Configuration["JWT:Issuer"],
-//        //验证接收者
-//        ValidateAudience = true,
-//        ValidAudience = builder.Configuration["JWT:Audience"],
-//        //验证是否过期
-//        ValidateLifetime = true,
-//        //验证私钥
-//        IssuerSigningKey = new SymmetricSecurityKey(keyByte),
-//        ClockSkew = TimeSpan.Zero,
-//    };
-//});
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    var keyByte = Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]);
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        //验证发布者
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        //验证接收者
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        //验证是否过期
+        ValidateLifetime = true,
+        //验证私钥
+        IssuerSigningKey = new SymmetricSecurityKey(keyByte),
+        ClockSkew = TimeSpan.Zero,
+    };
+});
 
 #region core自带的依赖注入
 
@@ -269,61 +229,6 @@ builder.Services.AddEndpointsApiExplorer();
 //});
 #endregion
 
-
-builder.AddNacosService();
-
-
-//IConfiguration config = new ConfigurationBuilder().AddJsonFile("").Build();
-
-//string test = config.GetSection("AppSetting")[""];
-
-//builder.Services.AddNacosV2Config(x =>
-//{
-//    //c.GetSection("NacosConfig");
-//    x.ServerAddresses = new List<string> { "http://120.53.244.123:8849/" };
-//    x.Namespace = "public";
-//    x.UserName = "nacos";
-//    x.Password = "nacos";
-//    //x.Listeners = new List<Nacos.Microsoft.Extensions.Configuration.ConfigListener>();
-//    //Nacos.Microsoft.Extensions.Configuration.ConfigListener model = new Nacos.Microsoft.Extensions.Configuration.ConfigListener();
-//    //model.DataId = "";
-//    //model.Group = "";
-//    //model.Optional = false;
-//    // swich to use http or rpc
-//    x.ConfigUseRpc = false;
-//});
-
-
-//builder.Host.ConfigureAppConfiguration((context, configBuilder) =>
-//{
-    
-//    var c = configBuilder.Build();
-//    var test = configBuilder.AddNacosV2Configuration((x) =>
-//    {
-//        //c.GetSection("NacosConfig");
-//        x.ServerAddresses = new List<string> { "http://120.53.244.123:8849/" };
-//        x.Namespace = "public";
-//        x.UserName = "nacos";
-//        x.Password = "nacos";
-//        x.Listeners = new List<Nacos.Microsoft.Extensions.Configuration.ConfigListener>();
-//        Nacos.Microsoft.Extensions.Configuration.ConfigListener model = new Nacos.Microsoft.Extensions.Configuration.ConfigListener();
-//        model.DataId = "";
-//        model.Group = "";
-//        model.Optional = false;
-//        // swich to use http or rpc
-//        x.ConfigUseRpc = false;
-//    });
-
-//    //IServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
-//    //var configSvc = serviceProvider.GetService<INacosConfigService>();
-
-//    //var test = configBuilder.AddNacosV2Configuration(c.GetSection("NacosConfig"));
-//    var test3 = test.Build();
-    
-//    var test2 = builder.Configuration;
-//    //var c = configBuilder.Build();
-
-//});
 
 
 //数据库配置

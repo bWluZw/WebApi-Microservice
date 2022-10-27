@@ -25,6 +25,7 @@ builder.Host.ConfigureLogging(log =>
 builder.Host.ConfigureAppConfiguration((context, configBuilder) =>
 {
     var c = configBuilder.Build();
+    
     var test= configBuilder.AddNacosV2Configuration(c.GetSection("NacosConfig"));
     Console.WriteLine(c.GetSection("NacosConfig"));
 

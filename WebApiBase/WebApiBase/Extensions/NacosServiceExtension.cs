@@ -1,52 +1,85 @@
 ﻿using Nacos.Microsoft.Extensions.Configuration;
 using Nacos.V2;
 using Nacos.V2.DependencyInjection;
+using Newtonsoft.Json;
 using System.Text;
 
 namespace WebApiBase.Extensions
 {
     public static class NacosServiceExtension
     {
-        public static WebApplicationBuilder AddNacosService(this WebApplicationBuilder builder)
+        /// <summary>
+        /// 获取远程配置
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="section">appsettings.json的配置项名</param>
+        /// <returns></returns>
+        public static async Task<WebApplicationBuilder> AddNacosService(this WebApplicationBuilder builder, string section)
         {
+
+            var config = builder.Configuration.GetSection(section);
+            string Namespace = config.GetSection("Namespace").Value;
+            var ServerAddresses = config.GetSection("ServerAddresses").GetChildren();
+            string UserName = config.GetSection("UserName").Value;
+            string Password = config.GetSection("Password").Value;
+            string ConfigUseRpc = config.GetSection("ConfigUseRpc").Value;
+            string NamingUseRpc = config.GetSection("NamingUseRpc").Value;
+            var listeners = config.GetSection("Listeners").GetChildren();
+
+            Dictionary<string, string> listenersDic = new Dictionary<string, string>();
+            foreach (var item in listeners)
+            {
+                listenersDic.Add(item.GetSection("DataId").Value, item.GetSection("Group").Value);
+            }
+
+            List<string> addressList = new List<string>();
+            foreach (var item in ServerAddresses)
+            {
+                addressList.Add(item.Value);
+            }
+
             builder.Services.AddNacosV2Config(x =>
             {
-                //c.GetSection("NacosConfig");
-                x.ServerAddresses = new List<string> { "http://120.53.244.123:8849/" };
-                x.Namespace = "public";
-                x.UserName = "nacos";
-                x.Password = "nacos";
-                //x.Listeners = new List<Nacos.Microsoft.Extensions.Configuration.ConfigListener>();
-                //Nacos.Microsoft.Extensions.Configuration.ConfigListener model = new Nacos.Microsoft.Extensions.Configuration.ConfigListener();
-                //model.DataId = "";
-                //model.Group = "";
-                //model.Optional = false;
-                // swich to use http or rpc
-                x.ConfigUseRpc = false;
+                x.ServerAddresses = new List<string>(addressList);
+                x.Namespace = Namespace;
+                x.UserName = UserName;
+                x.Password = Password;
+                x.ConfigUseRpc = bool.Parse(ConfigUseRpc);
+                x.NamingUseRpc = bool.Parse(NamingUseRpc);
             });
 
             IServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
             var configSvc = serviceProvider.GetService<INacosConfigService>();
-            string dataId = "nacosConfig";
-            string group = "DEFAULT_GROUP";
-            var content = configSvc.GetConfig("nacosConfig", "DEFAULT_GROUP", 3000);
-            builder.Host.ConfigureAppConfiguration((context, configBuilder) =>
-            {
-                var config = new ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.ASCII.GetBytes(content.Result))).Build();
-                var c = configBuilder.AddConfiguration(config);
-                var test = c.Build();
-                var test2 = test.GetSection("test").Value;
-            });
 
-            Console.WriteLine(content);
+            await Parallel.ForEachAsync(listenersDic, async (item, valueTask) =>
+             {
+                 await Task.Run(async () =>
+                 {
+                     var content = await configSvc.GetConfig(item.Key, item.Value, 3000);
+                     builder.Host.ConfigureAppConfiguration((context, configBuilder) =>
+                     {
+                         IConfigurationRoot config;
+                         if (IsJson(content))
+                         {
+                             config = new ConfigurationBuilder().AddJsonStream(new MemoryStream(Encoding.ASCII.GetBytes(content))).Build();
+                         }
+                         else
+                         {
+                             Stream stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                             config = new ConfigurationBuilder().AddXmlStream(stream).Build();
+                         }
+                         var c = configBuilder.AddConfiguration(config);
+                         _ = c.Build();
+                     });
 
-            var listener = new ConfigListener(builder);
-
-            //添加监听
-            Task.Run(async () =>
-            {
-                await configSvc.AddListener(dataId, group, listener);
-            });
+                     //添加监听
+                     Task.Run(async () =>
+                     {
+                         var listener = new ConfigListener(builder);
+                         await configSvc.AddListener(item.Key, item.Value, listener);
+                     });
+                 });
+             });
 
             //发布配置
             //var isPublishOk = await configSvc.PublishConfig(dataId, group, "content");
@@ -58,6 +91,32 @@ namespace WebApiBase.Extensions
             //Console.WriteLine(isRemoveOk);
             //await Task.Delay(3000);
             return builder;
+        }
+
+        private static bool IsJson(string str)
+        {
+            try
+            {
+                JsonConvert.DeserializeObject(str);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool isXml(string str)
+        {
+            try
+            {
+                JsonConvert.DeserializeXmlNode(str);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 
