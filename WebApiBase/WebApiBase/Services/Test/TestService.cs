@@ -18,8 +18,8 @@ namespace WebApiBase.Services.Test
             var res = await Task.Run(async () =>
            {
 
-                // 这里需要知道被调用方的服务名
-                var instance = await _svc.SelectOneHealthyInstance("BaseApi", "DEFAULT_GROUP");
+               // 这里需要知道被调用方的服务名
+               var instance = await _svc.SelectOneHealthyInstance("BaseApi", "DEFAULT_GROUP");
                var host = $"{instance.Ip}:{instance.Port}";
 
                var baseUrl = instance.Metadata.TryGetValue("secure", out _)
@@ -33,9 +33,11 @@ namespace WebApiBase.Services.Test
 
                var url = $"{baseUrl}/api/values";
 
-               using var client = new HttpClient();
-               var result = await client.GetAsync(url);
-               return "";
+               using (var client = new HttpClient())
+               {
+                   var result = await client.GetAsync(url);
+                   return await result.Content.ReadAsStringAsync();
+               };
            });
             return Success(res);
         }
