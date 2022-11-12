@@ -4,17 +4,17 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:22951",
+      "applicationUrl": "http://localhost:14737",
       "sslPort": 0
     }
   },
   "profiles": {
-    "WebApiBase.Gateway": {
+    "TestProducerServiceApi": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "up/consumer/test",
-      "applicationUrl": "http://192.168.31.155:5101",
+      "launchUrl": "weatherforecast",
+      "applicationUrl": "http://192.168.31.155:5064",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

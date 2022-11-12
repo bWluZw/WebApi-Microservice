@@ -42,7 +42,7 @@ namespace WebApiBase.Services.Test
             return Success(res);
         }
 
-        public async Task<ResponseVo<string>> NacosTest()
+        public async Task<ResponseVo<object>> NacosTest()
         {
             var test = _configuration.GetSection("test").Value;
             var test2 = _configuration.GetSection("log4net").GetChildren();
@@ -65,7 +65,12 @@ namespace WebApiBase.Services.Test
             //    var result = await client.GetAsync(url);
             //    var res = await result.Content.ReadAsStringAsync();
             //}
-            throw new Exception("123123123123123");
+            var res = await Task.Run(() =>
+             {
+                 return Success("11111111111");
+
+             });
+            return res;
         }
     }
 }

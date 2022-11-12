@@ -352,9 +352,9 @@ var app = builder.Build();
 //    app.UseSwagger();
 //    app.UseSwaggerUI();
 //}
-//app.UseExceptionHandleMiddleware();
 #endregion
 
+app.UseExceptionHandleMiddleware();
 
 //使用JWT中间件
 

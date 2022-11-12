@@ -1,43 +1,32 @@
-using Nacos.AspNetCore.V2;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Nacos;
-using WebApiBase.Gateway.Extensions;
+using Ocelot.Provider.Nacos.NacosClient.V2;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors(option => option.AddPolicy("cors", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().SetIsOriginAllowed(_ => true)));
 
-// Add services to the container.
+builder.Configuration.AddJsonFile("appsettings.json", false, true);
+//var test2 = builder.Configuration.AddJsonFile("ocelotconfig.json", false, true);
 
-builder.Services.AddControllers();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
-// 添加日志服务 ，这样在访问网关接口的时候可以在控制台打印输出相应的信息
-builder.Host.ConfigureLogging(log =>
+builder.Services.AddNacosAspNet(builder.Configuration, "nacos");
+
+builder.Host.ConfigureAppConfiguration((context, builder) =>
 {
-    log.ClearProviders();
-    log.AddConsole();
+    var config = builder.Build();
+    builder.AddNacosV2Configuration(config.GetSection("nacos"));
 });
 
-
-////nacos添加的配置读取出来替换掉原有的IConfigurationBuilder，并支持热更新
-await builder.AddNacosService("nacos");
-// 注册Ocelot 服务
-//这里有一个坑，AddNacosDiscovery默认nacos的配置名为nacos，并且内部做了一些处理，如果需要使用必须改为nacos
-builder.Services.AddOcelot().AddNacosDiscovery();
-//下面注释的不行，会提示没有注册包Ocelot.Provider.Nacos的某一个的服务
-//builder.Services.AddOcelot(builder.Configuration);
-//builder.Services.AddNacosAspNet(builder.Configuration, "NacosConfig");
-//builder.Services.AddSingleton(NacosProviderFactory.Get);
-//builder.Services.AddSingleton(NacosMiddlewareConfigurationProvider.Get);
-
+builder.Services.AddOcelot(builder.Configuration).AddNacosDiscovery();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-// ----------
-// 注册好Ocelot 服务后 启用其中间件
-await app.UseOcelot();
 
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseHttpLogging();
+//跨域
+app.UseCors("cors");
+app.UseOcelot().Wait();
 
 app.Run();

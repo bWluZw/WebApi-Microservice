@@ -15,7 +15,7 @@ namespace WebApiBase.Controllers
         }
         [Route("Test")]
         [HttpGet]
-        public async Task<ResponseVo<string>> Index()
+        public async Task<ResponseVo<object>> Index()
         {
             return await test.NacosTest();
         }

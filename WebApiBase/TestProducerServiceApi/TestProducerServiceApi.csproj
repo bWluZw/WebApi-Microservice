@@ -11,6 +11,4 @@
     <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.4" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
-
 </Project>
