@@ -2,7 +2,7 @@
 
 .net6的Asp.Net Core，微服务架构
 
-## nacos环境配置
+## nacos以及ocelot环境部分配置
 * 注意：nacos需要装java环境，最低版本为1.8
 
 * 注意：项目中的WebApiBase未启用
